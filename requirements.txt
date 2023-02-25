@@ -3,6 +3,5 @@ cogdl==0.5.3
 fuzzywuzzy==0.18.0
 numpy==1.21.6
 scikit_learn==1.2.1
-torch==1.10.0+cu111
 tqdm==4.36.1
 transformers==4.22.2
