@@ -3,6 +3,7 @@ import json
 import pickle
 from collections import defaultdict as dd
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 import logging
 
@@ -48,5 +49,15 @@ def find_bib_context(xml, dist=100):
         bib_id = bibr_strs_to_bid_id[item_str]
         cur_bib_context_pos_start = [ii for ii in range(len(xml)) if xml.startswith(item_str, ii)]
         for pos in cur_bib_context_pos_start:
-            bib_to_context[bib_id].append(xml[pos - dist: pos + dist])
+            bib_to_context[bib_id].append(xml[pos - dist: pos + dist].replace("\n", " ").replace("\r", " "))
     return bib_to_context
+
+
+class Log:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.f = open(file_path, 'w+')
+
+    def log(self, s):
+        self.f.write(str(datetime.now()) + "\t" + s + '\n')
+        self.f.flush()
