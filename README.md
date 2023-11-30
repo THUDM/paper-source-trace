@@ -35,6 +35,15 @@ export CUDA_VISIBLE_DEVICES='?'  # specify which GPU(s) to be used
 python rule.py  # rule-based method
 python bert.py  # BERT-based method
 python net_emb.py  # network embedding based method (ProNE)
+
+python glm/test_glm.py  # test glm
+bash glm/run_finetune_ds_10b.sh  # train glm-10b model
+bash glm/run_finetune_ds.sh  # train glm-2b model
+
+python chatglm/data/positive_negetive_balance.py  # make the positive data and negative data in dataset balance(1:1)
+python chatglm/data/map.py  # calculate map
+bash chatglm/test.sh  # test chatglm model(pt-v2)
+bash chatglm/ds_test_finetune.sh  # test chatglm model(finetune)
 ```
 
 ## Results
