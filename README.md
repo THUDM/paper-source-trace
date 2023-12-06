@@ -44,6 +44,9 @@ python chatglm/data/positive_negetive_balance.py  # make the positive data and n
 python chatglm/data/map.py  # calculate map
 bash chatglm/test.sh  # test chatglm model(pt-v2)
 bash chatglm/ds_test_finetune.sh  # test chatglm model(finetune)
+
+python gpt-api/gpt.py  # use gpt model.Token and api-base are needed.
+python gpt-api/map.py  # calculate map
 ```
 
 ## Results
