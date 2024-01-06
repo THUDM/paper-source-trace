@@ -10,8 +10,8 @@ import utils
 import settings
 
 
-def gen_paper_emb():
-    paper_dict = utils.load_json(settings.DATA_TRACE_DIR, "dblp_papers_refs_merged.json")
+def gen_paper_emb(year=2023):
+    paper_dict = utils.load_json(settings.DATA_TRACE_DIR, "dblp_papers_refs_merged_{}.json".format(year))
     pids_set = set()
     edges = []
     for pid in tqdm(paper_dict):
@@ -42,8 +42,9 @@ def gen_paper_emb():
     np.savez(join(out_dir, "paper_emb.npz"), emb=outputs)
 
 
-def eval_node_sim():
-    test_papers = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_test.json")
+def eval_node_sim(year=2023):
+    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+    test_papers = utils.load_json(data_year_dir, "paper_source_trace_test.json")
     pids = []
     with open(join(settings.OUT_DIR, "prone", "paper_id.txt"), "r") as f:
         for line in f:

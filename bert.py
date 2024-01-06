@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 MAX_SEQ_LENGTH=512
 
 
-def prepare_train_test_data_for_bert():
+def prepare_train_test_data_for_bert(year=2023):
     x_train = []
     y_train = []
     x_valid = []
@@ -35,16 +35,17 @@ def prepare_train_test_data_for_bert():
     x_test = []
     y_test = []
 
-    truths = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_2022_final_filtered.json")
+    truths = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_{}_final_filtered.json".format(year))
     pid_to_source_titles = dd(list)
     for paper in tqdm(truths):
         pid = paper["_id"]
         for ref in paper["refs_trace"]:
             pid_to_source_titles[pid].append(ref["title"].lower())
 
-    papers_train = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_train.json")
-    papers_valid = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_valid.json")
-    papers_test = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_test.json")
+    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+    papers_train = utils.load_json(data_year_dir, "paper_source_trace_train.json")
+    papers_valid = utils.load_json(data_year_dir, "paper_source_trace_valid.json")
+    papers_test = utils.load_json(data_year_dir, "paper_source_trace_test.json")
 
     pids_train = {p["_id"] for p in papers_train}
     pids_valid = {p["_id"] for p in papers_valid}
@@ -135,27 +136,27 @@ def prepare_train_test_data_for_bert():
     
     print("len(x_train)", len(x_train), "len(x_valid)", len(x_valid), "len(x_test)", len(x_test))
 
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_train.txt"), "w", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_train.txt"), "w", encoding="utf-8") as f:
         for line in x_train:
             f.write(line + "\n")
     
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_valid.txt"), "w", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_valid.txt"), "w", encoding="utf-8") as f:
         for line in x_valid:
             f.write(line + "\n")
     
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_test.txt"), "w", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_test.txt"), "w", encoding="utf-8") as f:
         for line in x_test:
             f.write(line + "\n")
     
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_train_label.txt"), "w", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_train_label.txt"), "w", encoding="utf-8") as f:
         for line in y_train:
             f.write(str(line) + "\n")
     
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_valid_label.txt"), "w", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_valid_label.txt"), "w", encoding="utf-8") as f:
         for line in y_valid:
             f.write(str(line) + "\n")
     
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_test_label.txt"), "w", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_test_label.txt"), "w", encoding="utf-8") as f:
         for line in y_test:
             f.write(str(line) + "\n")
 
@@ -260,29 +261,31 @@ def evaluate(model, dataloader, device, criterion):
     return eval_loss, correct_labels, predicted_labels
 
 
-def train():
+def train(year=2023):
     train_texts = []
     dev_texts = []
     test_texts = []
     train_labels = []
     dev_labels = []
     test_labels = []
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_train.txt"), "r", encoding="utf-8") as f:
+    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+
+    with open(join(data_year_dir, "bib_context_train.txt"), "r", encoding="utf-8") as f:
         for line in f:
             train_texts.append(line.strip())
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_valid.txt"), "r", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_valid.txt"), "r", encoding="utf-8") as f:
         for line in f:
             dev_texts.append(line.strip())
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_test.txt"), "r", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_test.txt"), "r", encoding="utf-8") as f:
         for line in f:
             test_texts.append(line.strip())
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_train_label.txt"), "r", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_train_label.txt"), "r", encoding="utf-8") as f:
         for line in f:
             train_labels.append(int(line.strip()))
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_valid_label.txt"), "r", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_valid_label.txt"), "r", encoding="utf-8") as f:
         for line in f:
             dev_labels.append(int(line.strip()))
-    with open(join(settings.DATA_TRACE_DIR, "bib_context_test_label.txt"), "r", encoding="utf-8") as f:
+    with open(join(data_year_dir, "bib_context_test_label.txt"), "r", encoding="utf-8") as f:
         for line in f:
             test_labels.append(int(line.strip()))
 
@@ -388,8 +391,9 @@ def train():
         loss_history.append(dev_loss)
 
 
-def eval_test_papers_bert():
-    papers_test = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_test.json")
+def eval_test_papers_bert(year=2023):
+    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+    papers_test = utils.load_json(data_year_dir, "paper_source_trace_test.json")
     pids_test = {p["_id"] for p in papers_test}
 
     in_dir = join(settings.DATA_TRACE_DIR, "paper-xml")
@@ -412,7 +416,7 @@ def eval_test_papers_bert():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("device", device)
     model = BertForSequenceClassification.from_pretrained(BERT_MODEL, num_labels = 2)
-    model.load_state_dict(torch.load(join(settings.OUT_DIR, "bert", "pytorch_model.bin")))
+    # model.load_state_dict(torch.load(join(settings.OUT_DIR, "bert", "pytorch_model.bin")))
     model.to(device)
     model.eval()
 

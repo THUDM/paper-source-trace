@@ -11,7 +11,7 @@ import utils
 import settings
 
 
-def prepare_train_test_data_for_glm():
+def prepare_train_test_data_for_glm(year=2023):
     x_train = []
     y_train = []
     x_valid = []
@@ -19,16 +19,17 @@ def prepare_train_test_data_for_glm():
     x_test = []
     y_test = []
 
-    truths = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_2022_final_filtered.json")
+    truths = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_{}_final_filtered.json".format(year))
     pid_to_source_titles = dd(list)
     for paper in tqdm(truths):
         pid = paper["_id"]
         for ref in paper["refs_trace"]:
             pid_to_source_titles[pid].append(ref["title"].lower())
 
-    papers_train = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_train.json")
-    papers_valid = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_valid.json")
-    papers_test = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_test.json")
+    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+    papers_train = utils.load_json(data_year_dir, "paper_source_trace_train.json")
+    papers_valid = utils.load_json(data_year_dir, "paper_source_trace_valid.json")
+    papers_test = utils.load_json(data_year_dir, "paper_source_trace_test.json")
 
     pids_train = {p["_id"] for p in papers_train}
     pids_valid = {p["_id"] for p in papers_valid}

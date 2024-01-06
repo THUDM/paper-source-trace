@@ -50,8 +50,9 @@ def extract_one_paper_via_rule(xml):
     return importantlist
 
 
-def find_paper_source_by_rule():
-    truths = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_test.json")
+def find_paper_source_by_rule(year=2023):
+    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+    truths = utils.load_json(data_year_dir, "paper_source_trace_test.json")
     pid_to_source_titles = dd(list)
     for paper in tqdm(truths):
         pid = paper["_id"]
