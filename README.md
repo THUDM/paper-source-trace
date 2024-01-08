@@ -47,6 +47,8 @@ bash chatglm/ds_test_finetune.sh  # test chatglm model(finetune)
 
 python gpt-api/gpt.py  # use gpt model.Token and api-base are needed.
 python gpt-api/map.py  # calculate map
+
+python claude/claude.py  #use claude model.URL and key are needed.
 ```
 
 ## Results
