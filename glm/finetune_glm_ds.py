@@ -259,7 +259,7 @@ def finetune_ds(model_name="THUDM/glm-2b"):
 
 
 if __name__ == "__main__":
-    # model_name = "THUDM/glm-2b"
+    model_name = "THUDM/glm-2b"
     # model_name = "~/.cache/huggingface/hub/models--THUDM--glm-10b/snapshots/696788d4f82ac96b90823555f547d1e754839ff4"
-    model_name = "~/.cache/huggingface/hub/models--THUDM--glm-2b/snapshots/774fda883d7ad028b8effc3c65afec510fce9634"
+    # model_name = "~/.cache/huggingface/hub/models--THUDM--glm-2b/snapshots/774fda883d7ad028b8effc3c65afec510fce9634"
     finetune_ds(model_name)
