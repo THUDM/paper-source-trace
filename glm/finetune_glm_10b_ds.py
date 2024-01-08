@@ -1,3 +1,4 @@
+import os
 import argparse
 from datetime import datetime
 import numpy as np
@@ -6,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForMultipleChoice
 import deepspeed
-from dataset import TaxoTensorDataset
+from glm.dataset import TensorDataset
 from utils import Log
 
 BATCH_SIZE = 8
@@ -138,15 +139,27 @@ def get_optimizer_param_groups(model):
     return param_groups
 
 
-def train(model_engine, dataloader, fp16):
+def train(model_engine, dataloader, tokenizer, fp16):
     loss_total = 0
     n_item = 0
-    for batch in dataloader:
+    for data in dataloader:
         # print("here3")
-        data = {k: v.to(model_engine.local_rank) for k, v in batch.items()}
+        # data = {k: v.to(model_engine.local_rank) for k, v in batch.items()}
         # if fp16:
         #     data = {k: v.half() for k, v in data.items()}
-        outputs = model_engine(**data)
+        # outputs = model_engine(**data)
+        # loss = outputs.loss
+        # model_engine.backward(loss)
+        # model_engine.step()  
+
+        # loss_total += loss.item()
+        # cur_n_item = outputs.logits.shape[0]
+        # n_item += cur_n_item
+        inputs = tokenizer(data["contexts"], return_tensors="pt", padding=True)
+        inputs = tokenizer.build_inputs_for_generation(inputs, targets=data["answers"], max_gen_length=2, padding=False)
+        inputs = inputs.to(model_engine.local_rank)
+
+        outputs = model_engine(**inputs)
         loss = outputs.loss
         model_engine.backward(loss)
         model_engine.step()  
@@ -221,14 +234,15 @@ def finetune_ds(model_name="THUDM/glm-2b"):
     exp_name = exp_name + str(datetime.now())
 
     # Dataset
-    train_dataset_path = "/data/caokun/huge_model/test/glm/glm/data/train.json"
-    valid_dataset_path = "/data/caokun/huge_model/test/glm/glm/data/valid.json"
-    test_dataset_path = "/data/caokun/huge_model/test/glm/glm/data/test.json"
+    train_dataset_path = "glm/data/train.json"
+    valid_dataset_path = "glm/data/valid.json"
+    test_dataset_path = "glm/data/test.json"
     log_path = "./log/" + exp_name + ".log"
+    os.makedirs("./log", exist_ok=True)
 
-    train_dataset = TaxoTensorDataset(train_dataset_path, tokenizer, True)
-    valid_dataset = TaxoTensorDataset(valid_dataset_path, tokenizer, train=False)
-    test_dataset = TaxoTensorDataset(test_dataset_path, tokenizer, train=False)
+    train_dataset = TensorDataset(train_dataset_path, tokenizer)
+    valid_dataset = TensorDataset(valid_dataset_path, tokenizer)
+    test_dataset = TensorDataset(test_dataset_path, tokenizer)
 
     # Log
     log = Log(file_path= log_path)
@@ -252,36 +266,42 @@ def finetune_ds(model_name="THUDM/glm-2b"):
 
     # ds_engine_infer._load_from_state_dict(model.state_dict())
     ds_engine_infer.module.load_state_dict(model.state_dict())
-    model_infer_ds = ds_engine_infer.module
-    res_valid = eval(valid_loader, model_infer_ds, tokenizer, fp16)
-    log.log('valid epoch {} result: {}'.format(-1, str(res_valid)))
-    res_test = eval(test_loader, model_infer_ds, tokenizer, fp16)
-    log.log('test epoch {} result: {}'.format(-1, str(res_test)))   
+    # model_infer_ds = ds_engine_infer.module
+    # res_valid = eval(valid_loader, model_infer_ds, tokenizer, fp16)
+    # log.log('valid epoch {} result: {}'.format(-1, str(res_valid)))
+    # res_test = eval(test_loader, model_infer_ds, tokenizer, fp16)
+    # log.log('test epoch {} result: {}'.format(-1, str(res_test)))   
 
     valid_best = 0
     test_best = []
     best_epoch = 0
+    out_dir = "glm/saved"
+    os.makedirs(out_dir, exist_ok=True)
     for epoch in range(args.epochs):
         log.log('begin epoch {}'.format(epoch))
-        loss_train = train(model_engine, trainloader, fp16)
+        loss_train = train(model_engine, trainloader, tokenizer, fp16)
         log.log('train epoch {} end, loss {}'.format(epoch, str(loss_train)))
 
         # ds_engine_infer._load_from_state_dict(model.state_dict())
-        ds_engine_infer.module.load_state_dict(model.state_dict())
-        model_infer_ds = ds_engine_infer.module
-        res_valid = eval(valid_loader, model_infer_ds, tokenizer, fp16)
-        log.log('valid epoch {} result: {}'.format(epoch, str(res_valid)))
-        res_test = eval(test_loader, model_infer_ds, tokenizer, fp16)
-        log.log('test epoch {} result: {}'.format(epoch, str(res_test)))     
 
-        if res_valid[0] > valid_best:
-            valid_best = res_valid[0]
-            test_best = res_test
-            best_epoch = epoch
-        log.log('best epoch {} result: {}'.format(best_epoch, str(test_best)))
+        # ds_engine_infer.module.load_state_dict(model.state_dict())
+        # model_infer_ds = ds_engine_infer.module
+        # res_valid = eval(valid_loader, model_infer_ds, tokenizer, fp16)
+        # log.log('valid epoch {} result: {}'.format(epoch, str(res_valid)))
+        # res_test = eval(test_loader, model_infer_ds, tokenizer, fp16)
+        # log.log('test epoch {} result: {}'.format(epoch, str(res_test)))     
+
+        # if res_valid[0] > valid_best:
+        #     valid_best = res_valid[0]
+        #     test_best = res_test
+        #     best_epoch = epoch
+        # log.log('best epoch {} result: {}'.format(best_epoch, str(test_best)))
+
+        ds_engine_infer.module.load_state_dict(model.state_dict())
+        torch.save(ds_engine_infer.module, os.path.join(out_dir, "{}-epoch-{}.pt".format("glm-10b", epoch)))
+
 
 
 if __name__ == "__main__":
-    # model_name = "THUDM/glm-10b"
-    model_name = "/data/caokun/huge_model/glm-10b/model/"
+    model_name = "THUDM/glm-10b"
     finetune_ds(model_name)

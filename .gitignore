@@ -2,6 +2,7 @@
 
 data/
 out/
+glm/saved/
 
 __pycache__/
 *.py[cod]

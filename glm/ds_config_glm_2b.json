@@ -1,5 +1,5 @@
 {
-    "train_batch_size": 8,
+    "train_batch_size": 6,
     "steps_per_print": 2000,
     "optimizer": {
       "type": "Adam",
