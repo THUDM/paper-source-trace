@@ -221,7 +221,7 @@ label_list = []
 # client = pymongo.MongoClient(host='', port=-1, authSource='', username='', password='')
 # db = client.get_database('')
 # collection = db[""]
-with open('processed_data/saved_data.json', 'r') as read_file:
+with open('processed_data/saved_data2.json', 'r') as read_file:
     saved_data = json.load(read_file)
 n = 0
 # 调用方法获取数据，然后将数据写入csv或json文件
@@ -233,9 +233,9 @@ if mode == 'test':
         this_data, this_label = process_data.data_list, process_data.label_list
         total_data_dic[item] = this_data
         total_label_dic[item] = this_label
-    with open(f'processed_data/{mode}/{mode}_data.json', 'w') as write_file:
+    with open(f'processed_data/{mode}_data.json', 'w') as write_file:
         write_file.write(json.dumps(total_data_dic))
-    with open(f'processed_data/{mode}/{mode}_label.json', 'w') as write_file:
+    with open(f'processed_data/{mode}_label.json', 'w') as write_file:
         write_file.write(json.dumps(total_label_dic))
 else:
     # train/valid:
@@ -244,9 +244,9 @@ else:
         this_data, this_label = process_data.data_list, process_data.label_list
         data_list += this_data
         label_list += this_label
-    with open(f'processed_data/{mode}/{mode}_label.csv', 'w', newline='') as write_file:
+    with open(f'processed_data/{mode}_label.csv', 'w', newline='') as write_file:
         writer = csv.writer(write_file)
         writer.writerows(label_list)
-    with open(f'processed_data/{mode}/{mode}_data.csv', 'w', newline='') as write_file:
+    with open(f'processed_data/{mode}_data.csv', 'w', newline='') as write_file:
         writer = csv.writer(write_file)
         writer.writerows(data_list)

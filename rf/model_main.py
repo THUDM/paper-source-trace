@@ -39,8 +39,8 @@ model_type = "RandomForest"
 
 params = set_param.Args(model_type)
 if mode == "train":
-    data = np.loadtxt(open(f"processed_data/train/train_data.csv", "rb"), delimiter=",")
-    label = np.loadtxt(open(f"processed_data/train/train_label.csv", "rb"), delimiter=",")
+    data = np.loadtxt(open(f"processed_data/train_data.csv", "rb"), delimiter=",")
+    label = np.loadtxt(open(f"processed_data/train_label.csv", "rb"), delimiter=",")
     if model_type == "SVM":
         model = svm.SVC(C=params.C, kernel=params.kernel, verbose=params.verbose, max_iter=params.max_iter,
                         tol=params.tol, probability=True)
@@ -57,9 +57,9 @@ if mode == "train":
     pre_result = model.predict(data)
     calculate_TPFN(pre_result, label)
 elif mode == "test":
-    with open('processed_data/test/test_data.json') as read_file:
+    with open('processed_data/test_data.json') as read_file:
         data_dic = json.load(read_file)
-    with open('processed_data/test/test_label.json') as read_file:
+    with open('processed_data/test_label.json') as read_file:
         label_dic = json.load(read_file)
     with open(f'saved_model/{model_type}.pkl', 'rb') as read_file:
         model = pickle.load(read_file)
