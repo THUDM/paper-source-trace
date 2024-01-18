@@ -49,6 +49,9 @@ python gpt-api/gpt.py  # use gpt model.Token and api-base are needed.
 python gpt-api/map.py  # calculate map
 
 python claude/claude.py  #use claude model.URL and key are needed.
+
+python galactica/dataset.py  #make dataset
+python galactica/main.py  # finetune galactica
 ```
 
 ## Results
