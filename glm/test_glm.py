@@ -13,17 +13,25 @@ import utils
 import settings
 
 
-def eval_test(model_name, ckpt_epoch=1):
+def eval_test(model_name, ckpt_epoch=1, year=2023, role="test", ft=True):
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 
     out_dir = "glm/saved"
-    model_path = os.path.join(out_dir, "{}-epoch-{}.pt".format("glm-2b", ckpt_epoch))
-    model_infer = torch.load(model_path)
+    prefix = model_name.split("/")[1].lower()
+    model_path = os.path.join(out_dir, "{}-epoch-{}.pt".format(prefix, ckpt_epoch))
+    if not ft:
+        model_infer = AutoModelForMultipleChoice.from_pretrained(model_name, trust_remote_code=True)
+        # model_infer = AutoModelForMultipleChoice.from_pretrained("/home/zhangfanjin/.cache/huggingface/hub/models--THUDM--glm-10b/snapshots/696788d4f82ac96b90823555f547d1e754839ff4", trust_remote_code=True)
+        model_infer.to('cuda')
+    elif prefix == "glm-10b":
+        model_infer = torch.load(model_path, map_location=torch.device('cuda'))
+    elif prefix == "glm-2b":
+        model_infer = torch.load(model_path, map_location=torch.device('cuda'))
+        # model_infer.to('cuda')
     model_infer.eval()
-    model_infer.to('cuda')
     print("model load successfully")
 
-    papers_test = utils.load_json(settings.DATA_TRACE_DIR, "paper_source_trace_test.json")
+    papers_test = utils.load_json(join(settings.DATA_TRACE_DIR, str(year)), "paper_source_trace_{}.json".format(role))
     pids_test = {p["_id"] for p in papers_test}
 
     truths = papers_test
@@ -121,9 +129,24 @@ def eval_test(model_name, ckpt_epoch=1):
         if f_idx % 20 == 0:
             print("map until now", np.mean(metrics), len(metrics), cur_map)
 
-    print("epoch {} average map".format(ckpt_epoch), np.mean(metrics), len(metrics))
+    map_avg = np.mean(metrics)
+    print("epoch {} average map".format(ckpt_epoch), map_avg, len(metrics))
+    return np.mean(metrics)
 
 
 if __name__ == "__main__":
-    eval_test(model_name="THUDM/GLM-2b", ckpt_epoch=1)
+    # eval_test(model_name="THUDM/GLM-2b", ckpt_epoch=1)
+
+    """
+    model_name = "THUDM/GLM-2b"
+    prefix = model_name.split("/")[1].lower()
+    wf = open("glm/saved/valid_map_{}.txt".format(prefix), "w")
+    for i in range(10):
+        cur_map = eval_test(model_name=model_name, ckpt_epoch=i, role="valid")
+        wf.write("{}\t{}\n".format(i, cur_map))
+        wf.flush()
+    wf.close()
+    """
     
+    # eval_test(model_name="THUDM/GLM-2b", ckpt_epoch=3)
+    eval_test(model_name="THUDM/GLM-10b", ckpt_epoch=1)

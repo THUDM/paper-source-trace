@@ -10,7 +10,8 @@ import utils
 import settings
 
 
-def gen_paper_emb(year=2023):
+def gen_paper_emb(year=2023, method="prone"):
+    print("method", method)
     paper_dict = utils.load_json(settings.DATA_TRACE_DIR, "dblp_papers_refs_merged_{}.json".format(year))
     pids_set = set()
     edges = []
@@ -25,7 +26,14 @@ def gen_paper_emb(year=2023):
     pid_to_idx = {pid: idx for idx, pid in enumerate(pids_sorted)}
     edges = [[pid_to_idx[pid], pid_to_idx[ref_id]] for pid, ref_id in edges]
 
-    generator = pipeline("generate-emb", model="prone")
+    if method == "prone":
+        generator = pipeline("generate-emb", model="prone")
+    elif method == "line":
+        generator = pipeline("generate-emb", model="line", walk_length=5, walk_num=5)
+    elif method == "netsmf":
+        generator = pipeline("generate-emb", model="netsmf", window_size=5, num_round=5)
+    else:
+        raise NotImplementedError
 
     # generate embedding by an unweighted graph
     edge_index = np.array(edges)
@@ -33,24 +41,24 @@ def gen_paper_emb(year=2023):
     outputs = generator(edge_index)
     print("outputs", outputs.shape)
 
-    out_dir = join(settings.OUT_DIR, "prone")
+    out_dir = join(settings.OUT_DIR, method)
     os.makedirs(out_dir, exist_ok=True)
     with open(join(out_dir, "paper_id.txt"), "w") as f:
         for pid in pids_sorted:
             f.write(pid + "\n")
             f.flush()
-    np.savez(join(out_dir, "paper_emb.npz"), emb=outputs)
+    np.savez(join(out_dir, "paper_emb_{}.npz".format(method)), emb=outputs)
 
 
-def eval_node_sim(year=2023):
+def eval_node_sim(year=2023, method="prone"):
     data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
     test_papers = utils.load_json(data_year_dir, "paper_source_trace_test.json")
     pids = []
-    with open(join(settings.OUT_DIR, "prone", "paper_id.txt"), "r") as f:
+    with open(join(settings.OUT_DIR, method, "paper_id.txt"), "r") as f:
         for line in f:
             pids.append(line.strip())
     pid_to_idx = {pid: idx for idx, pid in enumerate(pids)}
-    emb = np.load(join(settings.OUT_DIR, "prone", "paper_emb.npz"))["emb"]
+    emb = np.load(join(settings.OUT_DIR, method, "paper_emb_{}.npz".format(method)))["emb"]
 
     xml_dir = join(settings.DATA_TRACE_DIR, "paper-xml")
     metrics = []
@@ -127,5 +135,6 @@ def eval_node_sim(year=2023):
 
 
 if __name__ == "__main__":
-    gen_paper_emb()
-    eval_node_sim()
+    method = "netsmf"
+    gen_paper_emb(method=method)
+    eval_node_sim(method=method)
