@@ -3,6 +3,13 @@
 data/
 out/
 glm/saved/
+.idea/
+chatglm/output/
+galactica/lightning_logs/
+galactica/result/
+galactica/saved_model/
+processed_data/
+saved_model/
 
 __pycache__/
 *.py[cod]

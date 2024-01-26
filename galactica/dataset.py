@@ -40,5 +40,6 @@ def preprocess_alpaca_json_data(alpaca_dataset_path: str):
     for k, v in data_dict.items():
         dataset[k] = Dataset.from_dict(v)
 
-    dataset.save_to_disk(str("/root/huge_model/galactica/alpaca_data")) 
-preprocess_alpaca_json_data("datasets/train_balance_2.json")
+    dataset.save_to_disk(str("data/pst_data")) 
+
+preprocess_alpaca_json_data("data/train_balance_2.json")

@@ -2,14 +2,9 @@ import json
 import warnings
 warnings.filterwarnings('ignore')
 from sklearn.metrics import average_precision_score
-# base_path = "/data/caokun/huge_model/chatGLM/ChatGLM-6B-main/ptuning/output/test/v2/"
-# base_path = "output/ptuning/"
-base_path = "output/finetune/"
 
-num = 5
-dic_list = [base_path + "/generated_predictions.txt" for i in range(1, 2)]
-# dic_list = [base_path + str(i) + "000/generated_predictions.txt" for i in range(1, 6)]
-with open("data/ID_num_dic.json") as read_file:
+dic_list = ["result/gala_standard.json"]
+with open("../chatglm/data/ID_num_dic.json") as read_file:
     trans_dic = json.load(read_file)
 for i in range(len(dic_list)):
     result_list = []
@@ -26,13 +21,9 @@ for i in range(len(dic_list)):
                 res.append(1)
             else:
                 res.append(0)
-            #if data["predict"] == "Yes":
-            #    pre.append(1)
-            #else:
-            #    pre.append(0)
-            if len(data["predict"]) == 0:
-                pre.append(0)
-            else:
+            if "yes" in data["predict"][0] or "Yes" in data["predict"][0] or "YES" in data["predict"][0]:
                 pre.append(1)
+            else:
+                pre.append(0)
         result_list.append(average_precision_score(res, pre))
     print(f"{i}:map={sum(result_list)/len(result_list)}")

@@ -261,7 +261,8 @@ def evaluate(model, dataloader, device, criterion):
     return eval_loss, correct_labels, predicted_labels
 
 
-def train(year=2023):
+def train(year=2023, model_name="scibert"):
+    print("model name", model_name)
     train_texts = []
     dev_texts = []
     test_texts = []
@@ -299,8 +300,12 @@ def train(year=2023):
     class_weight = torch.Tensor(class_weight).to(device)
     print("Class weight:", class_weight)
 
-    BERT_MODEL = "bert-base-uncased"
-    # BERT_MODEL = "allenai/scibert_scivocab_uncased"
+    if model_name == "bert":
+        BERT_MODEL = "bert-base-uncased"
+    elif model_name == "scibert":
+        BERT_MODEL = "allenai/scibert_scivocab_uncased"
+    else:
+        raise NotImplementedError
     tokenizer = AutoTokenizer.from_pretrained(BERT_MODEL)
 
     model = BertForSequenceClassification.from_pretrained(BERT_MODEL, num_labels = 2)
@@ -336,7 +341,7 @@ def train(year=2023):
     optimizer = AdamW(optimizer_grouped_parameters, lr=LEARNING_RATE, correct_bias=False)
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_train_steps)
 
-    OUTPUT_DIR = join(settings.OUT_DIR, "bert")
+    OUTPUT_DIR = join(settings.OUT_DIR, model_name)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     MODEL_FILE_NAME = "pytorch_model.bin"
@@ -391,7 +396,8 @@ def train(year=2023):
         loss_history.append(dev_loss)
 
 
-def eval_test_papers_bert(year=2023):
+def eval_test_papers_bert(year=2023, model_name="scibert"):
+    print("model name", model_name)
     data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
     papers_test = utils.load_json(data_year_dir, "paper_source_trace_test.json")
     pids_test = {p["_id"] for p in papers_test}
@@ -410,12 +416,18 @@ def eval_test_papers_bert(year=2023):
         for ref in paper["refs_trace"]:
             pid_to_source_titles[pid].append(ref["title"].lower())
 
-    BERT_MODEL = "bert-base-uncased"
+    if model_name == "bert":
+        BERT_MODEL = "bert-base-uncased"
+    elif model_name == "scibert":
+        BERT_MODEL = "allenai/scibert_scivocab_uncased"
+    else:
+        raise NotImplementedError
     tokenizer = AutoTokenizer.from_pretrained(BERT_MODEL)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("device", device)
     model = BertForSequenceClassification.from_pretrained(BERT_MODEL, num_labels = 2)
+    # model.load_state_dict(torch.load(join(settings.OUT_DIR, model_name, "pytorch_model.bin")))
     # model.load_state_dict(torch.load(join(settings.OUT_DIR, "bert", "pytorch_model.bin")))
     model.to(device)
     model.eval()
@@ -517,5 +529,5 @@ def eval_test_papers_bert(year=2023):
 
 if __name__ == "__main__":
     # prepare_train_test_data_for_bert()
-    # train()
-    eval_test_papers_bert()
+    # train(model_name="scibert")
+    eval_test_papers_bert(model_name="scibert")
