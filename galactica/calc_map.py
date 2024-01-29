@@ -4,19 +4,15 @@ warnings.filterwarnings('ignore')
 from sklearn.metrics import average_precision_score
 
 dic_list = ["result/gala_standard.json"]
-with open("../chatglm/data/ID_num_dic.json") as read_file:
-    trans_dic = json.load(read_file)
 for i in range(len(dic_list)):
     result_list = []
-    result_dic = {}
     with open(dic_list[i], "r") as read_file:
-        all_lines = read_file.readlines()
-    for item in trans_dic.keys():
-        this_list = trans_dic[item]
+        result_dic = json.load(read_file)
+    for key in result_dic.keys():
         pre = []
         res = []
-        for jtem in this_list:
-            data = json.loads(all_lines[jtem].strip())
+        for jtem in result_dic[key]:
+            data = json.loads(jtem.strip())
             if data["labels"] == "Yes":
                 res.append(1)
             else:

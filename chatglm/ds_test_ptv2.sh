@@ -3,7 +3,7 @@ LR=2e-2
 
 CUDA_VISIBLE_DEVICES=2 python3 test.py \
     --do_predict \
-    --test_file data/test.json \
+    --test_file data/test2.json \
     --prompt_column content \
     --response_column summary \
     --overwrite_cache \

@@ -24,13 +24,17 @@ print("Generated output by the model: {}".format(output))
 
 write_file = open("result/galactica_lora_result.json", "w")
 with open("../chatglm/data/test.json", "r") as read_file:
-    all_lines = read_file.readlines()
-for item in all_lines:
-    dic = json.loads(item.strip())
-    content = dic["content"]
-    answer = dic["summary"]
-    result = model.generate(texts=[content])
-    result_dic = {"labels": answer, "predict":result}
-    write_file.write(json.dumps(result_dic) + "\n")
-    write_file.flush()
+    data_dic = json.load(read_file)
+result_dic = {}
+for item in data_dic.keys():
+    data_list = data_dic[item]
+    result_dic[item] = []
+    for jtem in data_list:
+        dic = json.loads(jtem.strip())
+        content = dic["content"]
+        answer = dic["summary"]
+        result = model.generate(texts=[content])
+        result = {"labels": answer, "predict":result}
+        result_dic[item].append(result)
+json.dump(result_dic, write_file, indent=2)
 write_file.close()

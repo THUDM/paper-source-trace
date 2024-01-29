@@ -6,7 +6,7 @@ MASTER_PORT=$(shuf -n 1 -i 10000-65535)
 deepspeed  --include localhost:1,2,6,7 --master_port $MASTER_PORT finetune_test.py \
     --deepspeed ft_ds_config.json \
     --do_predict \
-    --test_file data/test.json \
+    --test_file data/test2.json \
     --prompt_column content \
     --response_column summary \
     --overwrite_cache \
