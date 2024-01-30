@@ -3,6 +3,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 from xturing.datasets.instruction_dataset import InstructionDataset
 from xturing.models import BaseModel
 import json
+from tqdm import tqdm
+
 data_dic = {}
 with open("data/train_balance_2.json", "r") as read_file:
     all_lines = read_file.readlines()
@@ -26,15 +28,18 @@ write_file = open("result/galactica_lora_result.json", "w")
 with open("../chatglm/data/test.json", "r") as read_file:
     data_dic = json.load(read_file)
 result_dic = {}
-for item in data_dic.keys():
+for item in tqdm(data_dic.keys()):
     data_list = data_dic[item]
     result_dic[item] = []
     for jtem in data_list:
-        dic = json.loads(jtem.strip())
+        dic = jtem
         content = dic["content"]
         answer = dic["summary"]
-        result = model.generate(texts=[content])
-        result = {"labels": answer, "predict":result}
+        if len(content) <= 3:
+            result = {"labels": answer, "predict": "No"}
+        else:
+            result = model.generate(texts=[content])
+            result = {"labels": answer, "predict":result}
         result_dic[item].append(result)
 json.dump(result_dic, write_file, indent=2)
 write_file.close()
