@@ -49,7 +49,7 @@ def find_bib_context(xml, dist=100):
         bib_id = bibr_strs_to_bid_id[item_str]
         cur_bib_context_pos_start = [ii for ii in range(len(xml)) if xml.startswith(item_str, ii)]
         for pos in cur_bib_context_pos_start:
-            bib_to_context[bib_id].append(xml[pos - dist: pos + dist].replace("\n", " ").replace("\r", " "))
+            bib_to_context[bib_id].append(xml[pos - dist: pos + dist].replace("\n", " ").replace("\r", " ").strip())
     return bib_to_context
 
 
