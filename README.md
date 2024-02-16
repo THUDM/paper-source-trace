@@ -53,12 +53,3 @@ python claude/claude.py  #use claude model.URL and key are needed.
 python galactica/dataset.py  #make dataset
 python galactica/main.py  # finetune galactica
 ```
-
-## Results
-Evaluation metrics: average MAP
-
-|       | MAP   |
-|-------|-------|
-| Rule  | 0.0565 |
-| ProNE | 0.1289 |
-| BERT  | 0.1294 |
