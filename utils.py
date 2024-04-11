@@ -1,5 +1,6 @@
 from os.path import join
 import json
+import numpy as np
 import pickle
 from collections import defaultdict as dd
 from bs4 import BeautifulSoup
@@ -51,6 +52,10 @@ def find_bib_context(xml, dist=100):
         for pos in cur_bib_context_pos_start:
             bib_to_context[bib_id].append(xml[pos - dist: pos + dist].replace("\n", " ").replace("\r", " ").strip())
     return bib_to_context
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 
 
 class Log:

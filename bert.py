@@ -161,6 +161,133 @@ def prepare_train_test_data_for_bert(year=2023):
             f.write(str(line) + "\n")
 
 
+
+def prepare_bert_input():
+    x_train = []
+    y_train = []
+    x_valid = []
+    y_valid = []
+
+    data_dir = join(settings.DATA_TRACE_DIR, "PST")
+    papers = utils.load_json(data_dir, "paper_source_trace_train_ans.json")
+    n_papers = len(papers)
+    papers = sorted(papers, key=lambda x: x["_id"])
+    n_train = int(n_papers * 2 / 3)
+    # n_valid = n_papers - n_train
+
+    papers_train = papers[:n_train]
+    papers_valid = papers[n_train:]
+
+    pids_train = {p["_id"] for p in papers_train}
+    pids_valid = {p["_id"] for p in papers_valid}
+
+    in_dir = join(data_dir, "paper-xml")
+    files = []
+    for f in os.listdir(in_dir):
+        if f.endswith(".xml"):
+            files.append(f)
+
+    pid_to_source_titles = dd(list)
+    for paper in tqdm(papers):
+        pid = paper["_id"]
+        for ref in paper["refs_trace"]:
+            pid_to_source_titles[pid].append(ref["title"].lower())
+
+    # files = sorted(files)
+    # for file in tqdm(files):
+    for cur_pid in tqdm(pids_train | pids_valid):
+        # cur_pid = file.split(".")[0]
+        # if cur_pid not in pids_train and cur_pid not in pids_valid:
+            # continue
+        f = open(join(in_dir, cur_pid + ".xml"), encoding='utf-8')
+        xml = f.read()
+        bs = BeautifulSoup(xml, "xml")
+
+        source_titles = pid_to_source_titles[cur_pid]
+        if len(source_titles) == 0:
+            continue
+
+        references = bs.find_all("biblStruct")
+        bid_to_title = {}
+        n_refs = 0
+        for ref in references:
+            if "xml:id" not in ref.attrs:
+                continue
+            bid = ref.attrs["xml:id"]
+            if ref.analytic is None:
+                continue
+            if ref.analytic.title is None:
+                continue
+            bid_to_title[bid] = ref.analytic.title.text.lower()
+            b_idx = int(bid[1:]) + 1
+            if b_idx > n_refs:
+                n_refs = b_idx
+        
+        flag = False
+
+        cur_pos_bib = set()
+
+        for bid in bid_to_title:
+            cur_ref_title = bid_to_title[bid]
+            for label_title in source_titles:
+                if fuzz.ratio(cur_ref_title, label_title) >= 80:
+                    flag = True
+                    cur_pos_bib.add(bid)
+        
+        cur_neg_bib = set(bid_to_title.keys()) - cur_pos_bib
+        
+        if not flag:
+            continue
+    
+        if len(cur_pos_bib) == 0 or len(cur_neg_bib) == 0:
+            continue
+    
+        bib_to_contexts = utils.find_bib_context(xml)
+
+        n_pos = len(cur_pos_bib)
+        n_neg = n_pos * 10
+        cur_neg_bib_sample = np.random.choice(list(cur_neg_bib), n_neg, replace=True)
+
+        if cur_pid in pids_train:
+            cur_x = x_train
+            cur_y = y_train
+        elif cur_pid in pids_valid:
+            cur_x = x_valid
+            cur_y = y_valid
+        else:
+            continue
+            # raise Exception("cur_pid not in train/valid/test")
+        
+        for bib in cur_pos_bib:
+            cur_context = " ".join(bib_to_contexts[bib])
+            cur_x.append(cur_context)
+            cur_y.append(1)
+    
+        for bib in cur_neg_bib_sample:
+            cur_context = " ".join(bib_to_contexts[bib])
+            cur_x.append(cur_context)
+            cur_y.append(0)
+    
+    print("len(x_train)", len(x_train), "len(x_valid)", len(x_valid))
+
+
+    with open(join(data_dir, "bib_context_train.txt"), "w", encoding="utf-8") as f:
+        for line in x_train:
+            f.write(line + "\n")
+    
+    with open(join(data_dir, "bib_context_valid.txt"), "w", encoding="utf-8") as f:
+        for line in x_valid:
+            f.write(line + "\n")
+    
+    with open(join(data_dir, "bib_context_train_label.txt"), "w", encoding="utf-8") as f:
+        for line in y_train:
+            f.write(str(line) + "\n")
+    
+    with open(join(data_dir, "bib_context_valid_label.txt"), "w", encoding="utf-8") as f:
+        for line in y_valid:
+            f.write(str(line) + "\n")
+
+
 class BertInputItem(object):
     """An item with all the necessary attributes for finetuning BERT."""
 
@@ -265,11 +392,10 @@ def train(year=2023, model_name="scibert"):
     print("model name", model_name)
     train_texts = []
     dev_texts = []
-    test_texts = []
     train_labels = []
     dev_labels = []
-    test_labels = []
-    data_year_dir = join(settings.DATA_TRACE_DIR, str(year))
+    data_year_dir = join(settings.DATA_TRACE_DIR, "PST")
+    print("data_year_dir", data_year_dir)
 
     with open(join(data_year_dir, "bib_context_train.txt"), "r", encoding="utf-8") as f:
         for line in f:
@@ -277,22 +403,17 @@ def train(year=2023, model_name="scibert"):
     with open(join(data_year_dir, "bib_context_valid.txt"), "r", encoding="utf-8") as f:
         for line in f:
             dev_texts.append(line.strip())
-    with open(join(data_year_dir, "bib_context_test.txt"), "r", encoding="utf-8") as f:
-        for line in f:
-            test_texts.append(line.strip())
+
     with open(join(data_year_dir, "bib_context_train_label.txt"), "r", encoding="utf-8") as f:
         for line in f:
             train_labels.append(int(line.strip()))
     with open(join(data_year_dir, "bib_context_valid_label.txt"), "r", encoding="utf-8") as f:
         for line in f:
             dev_labels.append(int(line.strip()))
-    with open(join(data_year_dir, "bib_context_test_label.txt"), "r", encoding="utf-8") as f:
-        for line in f:
-            test_labels.append(int(line.strip()))
+
 
     print("Train size:", len(train_texts))
     print("Dev size:", len(dev_texts))
-    print("Test size:", len(test_texts))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -315,12 +436,10 @@ def train(year=2023, model_name="scibert"):
 
     train_features = convert_examples_to_inputs(train_texts, train_labels, MAX_SEQ_LENGTH, tokenizer, verbose=0)
     dev_features = convert_examples_to_inputs(dev_texts, dev_labels, MAX_SEQ_LENGTH, tokenizer)
-    test_features = convert_examples_to_inputs(test_texts, test_labels, MAX_SEQ_LENGTH, tokenizer)
 
     BATCH_SIZE = 16
     train_dataloader = get_data_loader(train_features, MAX_SEQ_LENGTH, BATCH_SIZE, shuffle=True)
     dev_dataloader = get_data_loader(dev_features, MAX_SEQ_LENGTH, BATCH_SIZE, shuffle=False)
-    test_dataloader = get_data_loader(test_features, MAX_SEQ_LENGTH, BATCH_SIZE, shuffle=False)
 
     GRADIENT_ACCUMULATION_STEPS = 1
     NUM_TRAIN_EPOCHS = 20
@@ -341,7 +460,7 @@ def train(year=2023, model_name="scibert"):
     optimizer = AdamW(optimizer_grouped_parameters, lr=LEARNING_RATE, correct_bias=False)
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_train_steps)
 
-    OUTPUT_DIR = join(settings.OUT_DIR, model_name)
+    OUTPUT_DIR = join(settings.OUT_DIR, "kddcup", model_name)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     MODEL_FILE_NAME = "pytorch_model.bin"
@@ -527,7 +646,101 @@ def eval_test_papers_bert(year=2023, model_name="scibert"):
     print("bert average map", np.mean(metrics), len(metrics))
 
 
+def gen_kddcup_valid_submission_bert(model_name="scibert"):
+    print("model name", model_name)
+    data_dir = join(settings.DATA_TRACE_DIR, "PST")
+    papers = utils.load_json(data_dir, "paper_source_trace_valid_wo_ans.json")
+
+    if model_name == "bert":
+        BERT_MODEL = "bert-base-uncased"
+    elif model_name == "scibert":
+        BERT_MODEL = "allenai/scibert_scivocab_uncased"
+    else:
+        raise NotImplementedError
+    tokenizer = AutoTokenizer.from_pretrained(BERT_MODEL)
+
+    sub_example_dict = utils.load_json(data_dir, "submission_example_valid.json")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("device", device)
+    model = BertForSequenceClassification.from_pretrained(BERT_MODEL, num_labels = 2)
+    model.load_state_dict(torch.load(join(settings.OUT_DIR, "kddcup", model_name, "pytorch_model.bin")))
+
+    model.to(device)
+    model.eval()
+
+    BATCH_SIZE = 16
+    # metrics = []
+    # f_idx = 0
+
+    xml_dir = join(data_dir, "paper-xml")
+    sub_dict = {}
+
+    for paper in tqdm(papers):
+        cur_pid = paper["_id"]
+        file = join(xml_dir, cur_pid + ".xml")
+        f = open(file, encoding='utf-8')
+        xml = f.read()
+        bs = BeautifulSoup(xml, "xml")
+        f.close()
+
+        references = bs.find_all("biblStruct")
+        bid_to_title = {}
+        n_refs = 0
+        for ref in references:
+            if "xml:id" not in ref.attrs:
+                continue
+            bid = ref.attrs["xml:id"]
+            if ref.analytic is None:
+                continue
+            if ref.analytic.title is None:
+                continue
+            bid_to_title[bid] = ref.analytic.title.text.lower()
+            b_idx = int(bid[1:]) + 1
+            if b_idx > n_refs:
+                n_refs = b_idx
+
+        bib_to_contexts = utils.find_bib_context(xml)
+        # bib_sorted = sorted(bib_to_contexts.keys())
+        bib_sorted = ["b" + str(ii) for ii in range(n_refs)]
+        
+        y_score = [0] * n_refs
+
+        assert len(sub_example_dict[cur_pid]) == n_refs
+        # continue
+
+        contexts_sorted = [" ".join(bib_to_contexts[bib]) for bib in bib_sorted]
+
+        test_features = convert_examples_to_inputs(contexts_sorted, y_score, MAX_SEQ_LENGTH, tokenizer)
+        test_dataloader = get_data_loader(test_features, MAX_SEQ_LENGTH, BATCH_SIZE, shuffle=False)
+
+        predicted_scores = []
+        for step, batch in enumerate(test_dataloader):
+            batch = tuple(t.to(device) for t in batch)
+            input_ids, input_mask, segment_ids, label_ids = batch
+
+            with torch.no_grad():
+                r = model(input_ids, attention_mask=input_mask,
+                                            token_type_ids=segment_ids, labels=label_ids)
+                tmp_eval_loss = r[0]
+                logits = r[1]
+
+            cur_pred_scores = logits[:, 1].to('cpu').numpy()
+            predicted_scores.extend(cur_pred_scores)
+        
+        for ii in range(len(predicted_scores)):
+            bib_idx = int(bib_sorted[ii][1:])
+            # print("bib_idx", bib_idx)
+            y_score[bib_idx] = float(utils.sigmoid(predicted_scores[ii]))
+        
+        sub_dict[cur_pid] = y_score
+    
+    utils.dump_json(sub_dict, join(settings.OUT_DIR, "kddcup", model_name), "valid_submission_scibert.json")
+
+
 if __name__ == "__main__":
     # prepare_train_test_data_for_bert()
+    # prepare_bert_input()
     # train(model_name="scibert")
-    eval_test_papers_bert(model_name="scibert")
+    # eval_test_papers_bert(model_name="scibert")
+    gen_kddcup_valid_submission_bert(model_name="scibert")
