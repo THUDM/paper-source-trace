@@ -313,9 +313,9 @@ def eval_node_sim_kddcup(method="prone", role="valid"):
 
 if __name__ == "__main__":
     method = "prone"
-    # extract_paper_citation_graph()
-    # merge_paper_references()
+    extract_paper_citation_graph()
+    merge_paper_references()
     # gen_paper_emb(method=method)
-    # gen_paper_emb_kddcup(method=method)
+    gen_paper_emb_kddcup(method=method)
     # eval_node_sim(method=method)
     eval_node_sim_kddcup(method=method)

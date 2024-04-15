@@ -740,7 +740,7 @@ def gen_kddcup_valid_submission_bert(model_name="scibert"):
 
 if __name__ == "__main__":
     # prepare_train_test_data_for_bert()
-    # prepare_bert_input()
-    # train(model_name="scibert")
+    prepare_bert_input()
+    train(model_name="scibert")
     # eval_test_papers_bert(model_name="scibert")
     gen_kddcup_valid_submission_bert(model_name="scibert")

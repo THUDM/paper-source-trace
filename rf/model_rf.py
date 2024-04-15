@@ -138,6 +138,6 @@ def eval_classifier(model_type="RandomForest", role="valid"):
 
 
 if __name__ == "__main__":
-    # train_classifier()
+    train_classifier()
     eval_classifier("RandomForest", "valid")
     

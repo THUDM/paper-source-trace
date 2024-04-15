@@ -304,6 +304,6 @@ def extract_valid_features():
 
 
 if __name__ == "__main__":
-    # extract_paper_info_from_dblp()
-    # extract_train_features()
+    extract_paper_info_from_dblp()
+    extract_train_features()
     extract_valid_features()
