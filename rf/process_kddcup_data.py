@@ -30,7 +30,7 @@ class Process_data(object):
         self.authors_set = set([item.get('name') for item in paper_dic.get('authors', {})])
         # 通过xml获取tree和listBibl
         try:
-            path = f'data/paper-xml/{paper_id}.tei.xml'
+            path = f'data/PST/paper-xml/{paper_id}.xml'
             self.tree = etree.parse(path)
             root = self.tree.getroot()
             listBibl = root.xpath("//*[local-name()='listBibl']")[0]
