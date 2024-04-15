@@ -7,3 +7,4 @@ tqdm==4.36.1
 transformers==4.22.2
 python-Levenshtein==0.20.9
 lxml==4.8.0
+numba==0.56.4
