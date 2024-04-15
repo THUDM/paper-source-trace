@@ -2,7 +2,6 @@ import json
 import os
 from os.path import join
 import csv
-import pymongo
 from bson import ObjectId
 import random
 from lxml import etree
