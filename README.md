@@ -46,25 +46,30 @@ python net_emb.py  # output at out/kddcup/prone/
 python bert.py  # output at out/kddcup/scibert/
 ```
 
+## Results on Valiation Set
 
-## How to Run
-```bash
-cd $project_path
-export CUDA_VISIBLE_DEVICES='?'  # specify which GPU(s) to be used
+|  Method  | MAP   |
+|-------|-------|
+| Random Forest  | 0.21420 |
+| ProNE | 0.21668 |
+| SciBERT  | 0.29489 |
 
-python rule.py  # rule-based method
-python bert.py  # BERT-based method
-python net_emb.py  # network embedding based method (ProNE)
+## Citation
 
-python glm/test_glm.py  # test glm
-bash glm/run_finetune_ds_10b.sh  # train glm-10b model
-bash glm/run_finetune_ds.sh  # train glm-2b model
+If you find this repo useful in your research, please cite the following papers:
 
-python gpt-api/gpt.py  # use gpt model.Token and api-base are needed.
-python gpt-api/map.py  # calculate map
+```
+@article{zhang2024pst,
+  title={PST-Bench: Tracing and Benchmarking the Source of Publications},
+  author={Fanjin Zhang and Kun Cao and Yukuo Cen and Jifan Yu and Da Yin and Jie Tang},
+  journal={arXiv preprint arXiv:2402.16009},
+  year={2024}
+}
 
-python claude/claude.py  #use claude model.URL and key are needed.
-
-python galactica/process.py  # data processing
-python galactica/gala_finetune.py  # finetune galactica
+@article{zhang2024oag,
+    title={OAG-Bench: A Human-Curated Benchmark for Academic Graph Mining},
+    author={Fanjin Zhang and Shijie Shi and Yifan Zhu and Bo Chen and Yukuo Cen and Jifan Yu and Yelin Chen and Lulu Wang and Qingfei Zhao and Yuqing Cheng and Tianyi Han and Yuwei An and Dan Zhang and Weng Lam Tam and Kun Cao and Yunhe Pang and Xinyu Guan and Huihui Yuan and Jian Song and Xiaoyan Li and Yuxiao Dong and Jie Tang},
+    journal={arXiv preprint arXiv:2402.15810},
+    year={2024}
+}
 ```
