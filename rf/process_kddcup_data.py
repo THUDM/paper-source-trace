@@ -2,7 +2,6 @@ import json
 import os
 from os.path import join
 import csv
-from bson import ObjectId
 import random
 from lxml import etree
 from fuzzywuzzy import fuzz
@@ -59,8 +58,6 @@ class Process_data(object):
         self.label_list = []
         for i, item in enumerate(query_list):
             this_data = []
-            # query = {'_id': ObjectId(item)}
-            # self.query_result = list(collection.find(query))
             self.query_result = paper_info_more.get(item, {})
             reference_place_list = self.get_referenced_place_num(item)
             if len(reference_place_list) == 0:
@@ -88,9 +85,6 @@ class Process_data(object):
     # 5 result
     # 6 others
     def get_referenced_place_num(self, paper_id):
-        # 从数据库中检索到title
-        # query = {"_id": ObjectId(paper_id)}
-        # title = list(collection.find(query))[0]['title']
         title = self.query_result.get('title', '')
         # 从xml中检索到序号
         if self.tree is None:
