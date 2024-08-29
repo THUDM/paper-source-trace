@@ -66,11 +66,12 @@ If you find this repo useful in your research, please cite the following papers:
   year={2024}
 }
 
-@article{zhang2024oag,
-    title={OAG-Bench: A Human-Curated Benchmark for Academic Graph Mining},
-    author={Fanjin Zhang and Shijie Shi and Yifan Zhu and Bo Chen and Yukuo Cen and Jifan Yu and Yelin Chen and Lulu Wang and Qingfei Zhao and Yuqing Cheng and Tianyi Han and Yuwei An and Dan Zhang and Weng Lam Tam and Kun Cao and Yunhe Pang and Xinyu Guan and Huihui Yuan and Jian Song and Xiaoyan Li and Yuxiao Dong and Jie Tang},
-    journal={arXiv preprint arXiv:2402.15810},
-    year={2024}
+@inproceedings{zhang2024oag,
+  title={OAG-bench: a human-curated benchmark for academic graph mining},
+  author={Fanjin Zhang and Shijie Shi and Yifan Zhu and Bo Chen and Yukuo Cen and Jifan Yu and Yelin Chen and Lulu Wang and Qingfei Zhao and Yuqing Cheng and Tianyi Han and Yuwei An and Dan Zhang and Weng Lam Tam and Kun Cao and Yunhe Pang and Xinyu Guan and Huihui Yuan and Jian Song and Xiaoyan Li and Yuxiao Dong and Jie Tang},
+  booktitle={Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining},
+  pages={6214--6225},
+  year={2024}
 }
 ```
 
