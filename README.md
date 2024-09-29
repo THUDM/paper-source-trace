@@ -79,7 +79,7 @@ If you find this repo useful in your research, please cite the following papers:
 
 Hello everyone,
 
-We've created an online WeChat paper-sharing group where each member is required to share 2 computer science papers every week. We have established mechanisms of rewards and penalties for members who do and do not share papers as required. You are free to join or leave at any time. Welcome to join us!
+We've created an online WeChat paper-sharing group where each member is required to share 2 computer science papers every week. We have established mechanisms of rewards and penalties for members who do and do not share papers as required. You are free to join or leave at any time. Welcome to join us! (You can receive the up-to-date QR code from this channel. https://t.me/+apOrPEOLGixiNjdl)
 
 <p align="center">
 <img src="assets/group_qr_code_20240621.jpg" alt="描述文字" style="display: block; margin: auto; width: 30%;">
